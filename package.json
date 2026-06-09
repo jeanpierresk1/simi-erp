@@ -1,0 +1,26 @@
+{
+  "name": "simi-erp",
+  "version": "1.0.0",
+  "description": "Proyecto EVA 3 Multicloud - Autenticación y accesos para Farmacias SIMI",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jeanpierresk1/simi-erp.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jeanpierresk1/simi-erp/issues"
+  },
+  "homepage": "https://github.com/jeanpierresk1/simi-erp#readme",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.21.0"
+  }
+}

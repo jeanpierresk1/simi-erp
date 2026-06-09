@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: .
+    container_name: simi_frontend
+    ports:
+      - "80:3000" # Mapea el puerto 80 de tu máquina al 3000 del contenedor
+    restart: always
+    environment:
+      - NODE_ENV=production
