@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Farmacias SIMI | Portal Seguro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #070d1a;
+            --surface: #0d1526;
+            --surface-2: #111d33;
+            --border: rgba(99, 157, 255, 0.12);
+            --accent: #3d7bff;
+            --accent-glow: rgba(61, 123, 255, 0.25);
+            --accent-light: #639dff;
+            --text-primary: #e8eef8;
+            --text-secondary: #7a93b8;
+            --text-muted: #3d5070;
+            --green: #22d3a0;
+            --red: #f56565;
+            --yellow: #f0b429;
+            --font-display: 'Syne', sans-serif;
+            --font-body: 'DM Sans', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            font-family: var(--font-body);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(61, 123, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(61, 123, 255, 0.03) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ===== PANTALLAS ===== */
+        .screen { display: none; }
+        .screen.active { display: flex; }
+
+        /* ===== LOGIN ===== */
+        #screen-login {
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 48px;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .login-logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-logo .icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--accent), #6faeff);
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+
+        .login-logo h1 {
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .login-logo h1 span { color: var(--accent-light); }
+
+        .login-logo p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .mfa-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(61, 123, 255, 0.1);
+            border: 1px solid rgba(61, 123, 255, 0.2);
+            color: var(--accent-light);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 100px;
+            margin-top: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 14px;
+            padding: 12px 14px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: #fff;
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background 0.2s, transform 0.15s;
+            box-shadow: 0 4px 20px rgba(61, 123, 255, 0.3);
+        }
+
+        .btn-primary:hover { background: #5a92ff; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .error-msg {
+            color: var(--red);
+            font-size: 13px;
+            margin-top: 8px;
+            text-align: center;
+            display: none;
+        }
+
+        /* ===== MFA ===== */
+        #screen-mfa {
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .mfa-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 48px;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+        }
+
+        .mfa-icon {
+            width: 70px;
+            height: 70px;
+            background: rgba(240, 180, 41, 0.1);
+            border: 2px solid rgba(240, 180, 41, 0.3);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: var(--yellow);
+            margin-bottom: 20px;
+        }
+
+        .mfa-card h2 {
+            font-family: var(--font-display);
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .mfa-card p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .otp-inputs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .otp-input {
+            width: 52px;
+            height: 56px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .otp-input:focus { border-color: var(--accent); }
+
+        .mfa-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .mfa-hint span { color: var(--accent-light); font-weight: 600; }
+
+        /* ===== DASHBOARD ===== */
+        #screen-dashboard {
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        nav {
+            background: rgba(7, 13, 26, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            height: 64px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: var(--font-display);
+            font-size: 17px;
+            font-weight: 800;
+        }
+
+        .nav-brand span { color: var(--accent-light); }
+
+        .nav-brand .icon {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, var(--accent), #6faeff);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .nav-right { display: flex; align-items: center; gap: 16px; }
+
+        .nav-user {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(34, 211, 160, 0.08);
+            border: 1px solid rgba(34, 211, 160, 0.2);
+            padding: 5px 12px;
+            border-radius: 100px;
+            font-size: 12px;
+            color: var(--green);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .btn-logout {
+            background: rgba(245, 101, 101, 0.1);
+            border: 1px solid rgba(245, 101, 101, 0.2);
+            color: var(--red);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-logout:hover { background: rgba(245, 101, 101, 0.2); }
+
+        .main {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 40px 32px;
+            width: 100%;
+        }
+
+        .page-header { margin-bottom: 32px; }
+
+        .page-header h1 {
+            font-family: var(--font-display);
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        .page-header p { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .kpi-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+        }
+
+        .kpi-icon.blue { background: rgba(61, 123, 255, 0.15); color: var(--accent-light); }
+        .kpi-icon.green { background: rgba(34, 211, 160, 0.1); color: var(--green); }
+        .kpi-icon.yellow { background: rgba(240, 180, 41, 0.1); color: var(--yellow); }
+
+        .kpi-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+        .kpi-value { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin-top: 2px; }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title i { color: var(--accent-light); }
+
+        .form-body { padding: 24px; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: #fff;
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: background 0.2s;
+        }
+
+        .btn-submit:hover { background: #5a92ff; }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .table-wrap { overflow-x: auto; }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        thead th {
+            padding: 12px 20px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody tr { border-bottom: 1px solid var(--border); }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: rgba(61, 123, 255, 0.04); }
+
+        td { padding: 14px 20px; font-size: 13px; }
+
+        .td-id { font-size: 12px; color: var(--text-muted); }
+        .td-name { font-weight: 600; }
+        .td-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+        .td-price { font-family: var(--font-display); font-weight: 700; }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 100px;
+        }
+
+        .pill-green { background: rgba(34,211,160,0.1); color: var(--green); border: 1px solid rgba(34,211,160,0.2); }
+        .pill-yellow { background: rgba(240,180,41,0.1); color: var(--yellow); border: 1px solid rgba(240,180,41,0.2); }
+        .pill-red { background: rgba(245,101,101,0.1); color: var(--red); border: 1px solid rgba(245,101,101,0.2); }
+
+        .empty-state { padding: 48px 20px; text-align: center; color: var(--text-muted); }
+        .empty-state i { font-size: 32px; margin-bottom: 12px; opacity: 0.4; }
+
+        .search-wrap { padding: 14px 24px; border-bottom: 1px solid var(--border); }
+
+        .search-inner { position: relative; }
+        .search-inner i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; }
+        #search-input {
+            width: 100%;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 13px;
+            padding: 8px 14px 8px 36px;
+            outline: none;
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--surface);
+            border: 1px solid rgba(34,211,160,0.3);
+            color: var(--green);
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 999;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+        }
+
+        #toast.show { opacity: 1; transform: translateY(0); }
+
+        .badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 100px;
+            background: rgba(61,123,255,0.12);
+            color: var(--accent-light);
+            border: 1px solid rgba(61,123,255,0.2);
+        }
+
+        @media (max-width: 900px) {
+            .content-grid { grid-template-columns: 1fr; }
+            .kpi-row { grid-template-columns: 1fr; }
+            .main { padding: 24px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== PANTALLA LOGIN ===== -->
+<div id="screen-login" class="screen active">
+    <div class="login-card">
+        <div class="login-logo">
+            <div class="icon">
+                <i class="fa-solid fa-briefcase-medical" style="color:#fff"></i>
+            </div>
+            <h1>FARMACIAS <span>SIMI</span></h1>
+            <p>Portal ERP Seguro — AWS Cloud</p>
+            <div class="mfa-badge">
+                <i class="fa-solid fa-shield-halved"></i>
+                Acceso con MFA habilitado
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Usuario</label>
+            <input type="text" id="login-user" class="form-input" placeholder="admin_simi" value="admin_simi">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Contraseña</label>
+            <input type="password" id="login-pass" class="form-input" placeholder="••••••••" value="simi2026">
+        </div>
+
+        <button class="btn-primary" id="btn-login" onclick="handleLogin()">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Iniciar Sesión
+        </button>
+        <div class="error-msg" id="login-error">Credenciales incorrectas. Intente nuevamente.</div>
+    </div>
+</div>
+
+<!-- ===== PANTALLA MFA ===== -->
+<div id="screen-mfa" class="screen">
+    <div class="mfa-card">
+        <div class="mfa-icon">
+            <i class="fa-solid fa-mobile-screen-button"></i>
+        </div>
+        <h2>Verificación MFA</h2>
+        <p>Ingresa el código de 6 dígitos enviado a tu dispositivo de autenticación</p>
+
+        <div class="otp-inputs">
+            <input type="text" class="otp-input" maxlength="1" id="otp0">
+            <input type="text" class="otp-input" maxlength="1" id="otp1">
+            <input type="text" class="otp-input" maxlength="1" id="otp2">
+            <input type="text" class="otp-input" maxlength="1" id="otp3">
+            <input type="text" class="otp-input" maxlength="1" id="otp4">
+            <input type="text" class="otp-input" maxlength="1" id="otp5">
+        </div>
+
+        <p class="mfa-hint">Para la PoC, usa el código: <span>123456</span></p>
+
+        <button class="btn-primary" onclick="handleMFA()">
+            <i class="fa-solid fa-shield-check"></i> Verificar Código
+        </button>
+        <div class="error-msg" id="mfa-error">Código incorrecto. Intente nuevamente.</div>
+    </div>
+</div>
+
+<!-- ===== PANTALLA DASHBOARD ===== -->
+<div id="screen-dashboard" class="screen">
+    <nav>
+        <div class="nav-brand">
+            <div class="icon"><i class="fa-solid fa-briefcase-medical" style="color:#fff"></i></div>
+            FARMACIAS <span>SIMI</span>
+        </div>
+        <div class="nav-right">
+            <span class="nav-user" id="nav-user"></span>
+            <div class="status-badge">
+                <span class="status-dot"></span>
+                AWS RDS Conectado
+            </div>
+            <button class="btn-logout" onclick="handleLogout()">
+                <i class="fa-solid fa-right-from-bracket"></i> Salir
+            </button>
+        </div>
+    </nav>
+
+    <main class="main">
+        <div class="page-header">
+            <h1>Panel de Inventario</h1>
+            <p>Gestión de insumos y productos — Acceso autenticado vía JWT + MFA</p>
+        </div>
+
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-icon blue"><i class="fa-solid fa-boxes-stacked"></i></div>
+                <div>
+                    <div class="kpi-label">Total Productos</div>
+                    <div class="kpi-value" id="kpi-total">—</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon green"><i class="fa-solid fa-circle-check"></i></div>
+                <div>
+                    <div class="kpi-label">Stock Óptimo</div>
+                    <div class="kpi-value" id="kpi-optimo">—</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon yellow"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div>
+                    <div class="kpi-label">Stock Bajo / Agotado</div>
+                    <div class="kpi-value" id="kpi-alerta">—</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-plus-circle"></i> Ingresar Insumo
+                    </div>
+                </div>
+                <div class="form-body">
+                    <div class="form-group">
+                        <label class="form-label">Nombre del Producto</label>
+                        <input type="text" id="p-nombre" class="form-input" placeholder="Ej: Amoxicilina 500mg">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Descripción</label>
+                        <input type="text" id="p-desc" class="form-input" placeholder="Ej: Antibiótico">
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Precio</label>
+                            <input type="number" id="p-precio" class="form-input" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Stock</label>
+                            <input type="number" id="p-stock" class="form-input" placeholder="0">
+                        </div>
+                    </div>
+                    <button class="btn-submit" onclick="agregarProducto()">
+                        <i class="fa-solid fa-floppy-disk"></i> Guardar Producto
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-table-list"></i> Inventario en Tiempo Real
+                    </div>
+                    <span class="badge" id="badge-count">0 items</span>
+                </div>
+                <div class="search-wrap">
+                    <div class="search-inner">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="search-input" placeholder="Buscar producto..." oninput="filtrarProductos()">
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Producto</th>
+                                <th>Precio</th>
+                                <th>Stock</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-productos"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+    let token = null;
+    let productos = [];
+    const CLP = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' });
+
+    // OTP auto-avance
+    document.querySelectorAll('.otp-input').forEach((input, idx, arr) => {
+        input.addEventListener('input', () => {
+            if (input.value && idx < arr.length - 1) arr[idx + 1].focus();
+        });
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Backspace' && !input.value && idx > 0) arr[idx - 1].focus();
+        });
+    });
+
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function showToast(msg, isError = false) {
+        const t = document.getElementById('toast');
+        t.innerHTML = `<i class="fa-solid fa-${isError ? 'circle-xmark' : 'circle-check'}"></i> ${msg}`;
+        t.style.color = isError ? 'var(--red)' : 'var(--green)';
+        t.style.borderColor = isError ? 'rgba(245,101,101,0.3)' : 'rgba(34,211,160,0.3)';
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    async function handleLogin() {
+        const btn = document.getElementById('btn-login');
+        const errEl = document.getElementById('login-error');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verificando...';
+        errEl.style.display = 'none';
+
+        try {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: document.getElementById('login-user').value,
+                    password: document.getElementById('login-pass').value
+                })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                token = data.token;
+                showScreen('screen-mfa');
+            } else {
+                errEl.style.display = 'block';
+            }
+        } catch {
+            errEl.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Iniciar Sesión';
+        }
+    }
+
+    function handleMFA() {
+        const code = Array.from({length: 6}, (_, i) => document.getElementById(`otp${i}`).value).join('');
+        const errEl = document.getElementById('mfa-error');
+        if (code === '123456') {
+            errEl.style.display = 'none';
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            document.getElementById('nav-user').textContent = payload.user.username;
+            showScreen('screen-dashboard');
+            cargarProductos();
+        } else {
+            errEl.style.display = 'block';
+        }
+    }
+
+    function handleLogout() {
+        token = null;
+        productos = [];
+        document.querySelectorAll('.otp-input').forEach(i => i.value = '');
+        showScreen('screen-login');
+    }
+
+    async function cargarProductos() {
+        try {
+            const res = await fetch('/api/productos', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            productos = await res.json();
+            renderTabla(productos);
+            actualizarKPIs(productos);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function renderTabla(data) {
+        const tbody = document.getElementById('tabla-productos');
+        document.getElementById('badge-count').textContent = `${data.length} item${data.length !== 1 ? 's' : ''}`;
+        if (!data.length) {
+            tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><i class="fa-solid fa-box-open"></i><p>No hay productos registrados</p></div></td></tr>`;
+            return;
+        }
+        tbody.innerHTML = data.map(p => {
+            const pill = p.stock > 20
+                ? `<span class="pill pill-green"><i class="fa-solid fa-check"></i> Óptimo</span>`
+                : p.stock > 0
+                ? `<span class="pill pill-yellow"><i class="fa-solid fa-triangle-exclamation"></i> Bajo</span>`
+                : `<span class="pill pill-red"><i class="fa-solid fa-xmark"></i> Agotado</span>`;
+            return `<tr>
+                <td class="td-id">#${String(p.id).padStart(3,'0')}</td>
+                <td><div class="td-name">${p.nombre}</div><div class="td-desc">${p.descripcion}</div></td>
+                <td class="td-price">${CLP.format(p.precio)}</td>
+                <td>${p.stock} <span style="color:var(--text-muted);font-size:11px">un.</span></td>
+                <td>${pill}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    function actualizarKPIs(data) {
+        document.getElementById('kpi-total').textContent = data.length;
+        document.getElementById('kpi-optimo').textContent = data.filter(p => p.stock > 20).length;
+        document.getElementById('kpi-alerta').textContent = data.filter(p => p.stock <= 20).length;
+    }
+
+    function filtrarProductos() {
+        const q = document.getElementById('search-input').value.toLowerCase();
+        renderTabla(productos.filter(p => p.nombre.toLowerCase().includes(q) || p.descripcion.toLowerCase().includes(q)));
+    }
+
+    async function agregarProducto() {
+        const nombre = document.getElementById('p-nombre').value;
+        const descripcion = document.getElementById('p-desc').value;
+        const precio = document.getElementById('p-precio').value;
+        const stock = document.getElementById('p-stock').value;
+        if (!nombre || !descripcion || !precio || !stock) return showToast('Completa todos los campos', true);
+
+        try {
+            const res = await fetch('/api/productos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ nombre, descripcion, precio, stock })
+            });
+            if (res.ok) {
+                ['p-nombre','p-desc','p-precio','p-stock'].forEach(id => document.getElementById(id).value = '');
+                await cargarProductos();
+                showToast('Producto guardado correctamente');
+            }
+        } catch {
+            showToast('Error al guardar producto', true);
+        }
+    }
+</script>
+</body>
+</html>
