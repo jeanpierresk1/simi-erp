@@ -591,7 +591,8 @@
             <input type="text" class="otp-input" maxlength="1" id="otp4">
             <input type="text" class="otp-input" maxlength="1" id="otp5">
         </div>
-
+        
+        <img id="qr-image" src="" style="display:none; width:180px; height:180px; margin: 0 auto 16px; border-radius:12px; border: 2px solid var(--border);">
         <p class="mfa-hint">Para la PoC, usa el código: <span>123456</span></p>
 
         <button class="btn-primary" onclick="handleMFA()">
@@ -718,6 +719,7 @@
 
 <script>
     let token = null;
+    let tempToken = null;
     let productos = [];
     const CLP = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' });
 
@@ -763,7 +765,15 @@
             });
             const data = await res.json();
             if (res.ok) {
-                token = data.token;
+                tempToken = data.tempToken;
+                // Cargar QR real desde el servidor
+                const qrRes = await fetch('/api/mfa/qr');
+                const qrData = await qrRes.json();
+                // Mostrar QR en la pantalla MFA
+                document.getElementById('qr-image').src = qrData.qr;
+                document.getElementById('qr-image').style.display = 'block';
+                document.getElementById('mfa-hint').innerHTML = 
+                    'Escanea el QR con <strong>Google Authenticator</strong> e ingresa el código';
                 showScreen('screen-mfa');
             } else {
                 errEl.style.display = 'block';
@@ -776,22 +786,36 @@
         }
     }
 
-    function handleMFA() {
+    async function handleMFA() {
         const code = Array.from({length: 6}, (_, i) => document.getElementById(`otp${i}`).value).join('');
         const errEl = document.getElementById('mfa-error');
-        if (code === '123456') {
-            errEl.style.display = 'none';
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            document.getElementById('nav-user').textContent = payload.user.username;
-            showScreen('screen-dashboard');
-            cargarProductos();
-        } else {
+
+        try {
+            const res = await fetch('/api/mfa/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tempToken, otpCode: code })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                token = data.token;
+                errEl.style.display = 'none';
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                document.getElementById('nav-user').textContent = payload.user.username;
+                showScreen('screen-dashboard');
+                cargarProductos();
+            } else {
+                errEl.style.display = 'block';
+                document.getElementById('mfa-error').textContent = data.error;
+            }
+        } catch {
             errEl.style.display = 'block';
         }
     }
 
     function handleLogout() {
         token = null;
+        tempToken = null;
         productos = [];
         document.querySelectorAll('.otp-input').forEach(i => i.value = '');
         showScreen('screen-login');
